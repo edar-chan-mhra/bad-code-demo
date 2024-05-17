@@ -12,11 +12,6 @@ jobs:
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        language: [ 'javascript' ]
-
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4.1.6
@@ -24,7 +19,7 @@ jobs:
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
-        languages: ${{ matrix.language }}
+        languages: 'javascript-typescript'
 
     - name: Autobuild
       uses: github/codeql-action/autobuild@v3
