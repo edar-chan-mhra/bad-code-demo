@@ -1,0 +1,15 @@
+{
+  "name": "insecure-js-app",
+  "version": "1.0.0",
+  "description": "An insecure JavaScript application",
+  "main": "bad_code.js",
+  "scripts": {
+    "start": "node bad_code.js"
+  },
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mysql": "^2.18.1"
+  }
+}
