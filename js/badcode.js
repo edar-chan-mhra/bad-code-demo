@@ -1,10 +1,12 @@
-// Badly written JavaScript code with security vulnerabilities for SonarQube testing
+// bad_code.js
 
 var http = require('http');
 var url = require('url');
 var fs = require('fs');
 var mysql = require('mysql');
+var crypto = require('crypto');
 
+// Connection details should not be hardcoded
 var connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -35,6 +37,7 @@ http.createServer(function (req, res) {
         });
     } else if (pathname === "/search") {
         var searchQuery = query.q;
+        // Vulnerable to SQL Injection
         connection.query("SELECT * FROM users WHERE name = '" + searchQuery + "'", function (err, result) {
             if (err) throw err;
             res.writeHead(200, {'Content-Type': 'application/json'});
@@ -43,9 +46,17 @@ http.createServer(function (req, res) {
         });
     } else if (pathname === "/eval") {
         var code = query.code;
-        eval(code); // Dangerous: using eval with user input
+        // Extremely dangerous: using eval with user input
+        eval(code);
         res.writeHead(200, {'Content-Type': 'text/html'});
         res.write("Code executed");
+        return res.end();
+    } else if (pathname === "/md5") {
+        var input = query.input;
+        // Use of weak hash function (MD5)
+        var hash = crypto.createHash('md5').update(input).digest('hex');
+        res.writeHead(200, {'Content-Type': 'text/plain'});
+        res.write("MD5 Hash: " + hash);
         return res.end();
     } else {
         res.writeHead(404, {'Content-Type': 'text/html'});
@@ -57,9 +68,11 @@ http.createServer(function (req, res) {
 console.log('Server running at http://localhost:8080/');
 
 // Issues:
-// - SQL Injection: Directly inserting user input into SQL query without sanitization
+// - SQL Injection: User input is directly inserted into SQL query without sanitization
 // - XSS: Not escaping user input before displaying it on the page
 // - Use of eval(): Executing user-provided code
+// - Hardcoded database credentials
+// - Use of weak hash function (MD5)
 // - Lack of proper error handling and logging
 // - Inconsistent use of single and double quotes
 // - No input validation or sanitization
