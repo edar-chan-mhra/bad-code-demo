@@ -29,4 +29,4 @@ ENV DATABASE_USER=root
 ENV DATABASE_PASSWORD=password
 
 # Run the application
-CMD ["python", "app.py"]
+CMD ["python", "python/badcode.py"]
