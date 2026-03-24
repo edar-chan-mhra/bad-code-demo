@@ -98,23 +98,74 @@ resource "terraform_data" "demo_data" {
   input = "This is stored in state but creates nothing."
 }
 
-# Legacy null resource commonly used for triggers
-resource "null_resource" "demo_trigger" {
-  triggers = {
-    now = timestamp()
+# --- EXAM CONCEPTS: ADVANCED RESOURCES ---
+
+# Exam Concept: count
+# Use 'count' for simple identical copies.
+resource "terraform_data" "counted_example" {
+  count = 2
+  input = "Count index: ${count.index}"
+}
+
+# Exam Concept: for_each
+# Use 'for_each' for distinct resources based on a map or set.
+resource "terraform_data" "foreach_example" {
+  for_each = toset(["east", "west"])
+  input    = "Region: ${each.key}"
+}
+
+# Exam Concept: Local Module Call
+module "exam_helper" {
+  source    = "./modules/exam-demo"
+  input_val = "hello from root"
+}
+
+# Exam Concept: Lifecycle rules
+resource "terraform_data" "lifecycle_demo" {
+  input = "change me"
+
+  lifecycle {
+    create_before_destroy = true
+    # prevent_destroy       = true  # Warning: This prevents 'terraform destroy'
+    ignore_changes        = [input] # Changes to this won't trigger updates
   }
 }
 
-# Randomizers (useful for unique naming)
-# These generate values and store them in state, but don't touch any cloud provider.
-resource "random_pet" "server_name" {
-  length    = 2
-  separator = "-"
+# Exam Concept: Provisioners (local-exec)
+resource "terraform_data" "provisioner_demo" {
+  input = "test"
+
+  provisioner "local-exec" {
+    command = "echo 'Resource created at $(date)' > execution_log.txt"
+  }
+
+  # Exam Concept: depends_on
+  depends_on = [terraform_data.demo_data]
 }
 
-output "resource_outputs" {
+# Exam Concept: Dynamic Blocks (often used for nested configuration)
+# Demonstration using a local map to pretend we are configuring something complex
+locals {
+  custom_settings = {
+    "setting1" = "value1"
+    "setting2" = "value2"
+  }
+}
+
+resource "terraform_data" "dynamic_block_demo" {
+  # dynamic blocks are usually used inside resources that support nested blocks (like aws_security_group ingress)
+  # Here we use 'input' just to show syntax logic as terraform_data doesn't have nested blocks.
+  input = jsonencode({
+    for k, v in local.custom_settings : k => v
+  })
+}
+
+output "exam_outputs" {
   value = {
-    pet_name     = random_pet.server_name.id
-    stored_input = terraform_data.demo_data.output
+    module_output = module.exam_helper.processed_val
+    foreach_ids   = [for r in terraform_data.foreach_example : r.id]
+    counted_ids   = terraform_data.counted_example[*].id
+    sensitive_pw  = var.db_password # This will be marked (sensitive value) in output
   }
+  sensitive = true # Exam Concept: sensitve = true is required if output contains sensitive data
 }
